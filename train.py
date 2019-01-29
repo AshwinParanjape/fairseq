@@ -22,6 +22,7 @@ from fairseq.data import iterators
 from fairseq.trainer import Trainer
 from fairseq.meters import AverageMeter, StopwatchMeter
 from fairseq.utils import import_user_module
+from meticulous import Experiment
 
 
 def main(args):
@@ -370,6 +371,8 @@ def distributed_main(i, args):
 
 if __name__ == '__main__':
     parser = options.get_training_parser()
+    experiment = Experiment(parser)
+    open = experiment.open
     args = options.parse_args_and_arch(parser)
 
     if args.distributed_init_method is None:

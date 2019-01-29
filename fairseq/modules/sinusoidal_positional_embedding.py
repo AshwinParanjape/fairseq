@@ -45,8 +45,8 @@ class SinusoidalPositionalEmbedding(nn.Module):
         from the description in Section 3.5 of "Attention Is All You Need".
         """
         half_dim = embedding_dim // 2
-        emb = math.log(10000) / (half_dim - 1)
-        emb = torch.exp(torch.arange(half_dim, dtype=torch.float) * -emb)
+        emb = math.log(1000) / (half_dim - 1)
+        emb = torch.exp(torch.arange(-50, half_dim-50, dtype=torch.float) * -emb)
         emb = torch.arange(num_embeddings, dtype=torch.float).unsqueeze(1) * emb.unsqueeze(0)
         emb = torch.cat([torch.sin(emb), torch.cos(emb)], dim=1).view(num_embeddings, -1)
         if embedding_dim % 2 == 1:
