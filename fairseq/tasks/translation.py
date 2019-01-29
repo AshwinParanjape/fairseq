@@ -61,6 +61,8 @@ class TranslationTask(FairseqTask):
                             help='pad the source on the left')
         parser.add_argument('--left-pad-target', default='False', type=str, metavar='BOOL',
                             help='pad the target on the left')
+        parser.add_argument('--simultaneous_padding', default='False', type=str, metavar='BOOL',
+                            help='pad to the right till max-(source/target)-positions')
         parser.add_argument('--max-source-positions', default=1024, type=int, metavar='N',
                             help='max number of tokens in the source sequence')
         parser.add_argument('--max-target-positions', default=1024, type=int, metavar='N',
@@ -101,6 +103,7 @@ class TranslationTask(FairseqTask):
         """
         args.left_pad_source = options.eval_bool(args.left_pad_source)
         args.left_pad_target = options.eval_bool(args.left_pad_target)
+        args.simultaneous_padding = options.eval_bool(args.simultaneous_padding)
 
         # find language pair automatically
         if args.source_lang is None or args.target_lang is None:
@@ -188,6 +191,7 @@ class TranslationTask(FairseqTask):
             tgt_dataset, tgt_dataset.sizes, self.tgt_dict,
             left_pad_source=self.args.left_pad_source,
             left_pad_target=self.args.left_pad_target,
+            simultaneous_padding = self.args.simultaneous_padding,
             max_source_positions=self.args.max_source_positions,
             max_target_positions=self.args.max_target_positions,
         )

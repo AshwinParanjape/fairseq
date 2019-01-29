@@ -15,19 +15,19 @@ from . import data_utils, FairseqDataset
 
 def collate(
     samples, pad_idx, eos_idx, left_pad_source=True, left_pad_target=False,
-    input_feeding=True,
+    input_feeding=True, simultaneous_padding=False, max_source_positions=1024, max_target_positions=1024
 ):
     if len(samples) == 0:
         return {}
 
-    def merge(key, left_pad, move_eos_to_beginning=False):
+    def merge(key, left_pad, move_eos_to_beginning=False, simultaneous_padding=False, max_positions=1024):
         return data_utils.collate_tokens(
             [s[key] for s in samples],
-            pad_idx, eos_idx, left_pad, move_eos_to_beginning,
+            pad_idx, eos_idx, left_pad, move_eos_to_beginning, simultaneous_padding, max_positions
         )
 
     id = torch.LongTensor([s['id'] for s in samples])
-    src_tokens = merge('source', left_pad=left_pad_source)
+    src_tokens = merge('source', left_pad=left_pad_source, simultaneous_padding=simultaneous_padding, max_positions=max_source_positions)
     # sort by descending source length
     src_lengths = torch.LongTensor([s['source'].numel() for s in samples])
     src_lengths, sort_order = src_lengths.sort(descending=True)
@@ -37,7 +37,7 @@ def collate(
     prev_output_tokens = None
     target = None
     if samples[0].get('target', None) is not None:
-        target = merge('target', left_pad=left_pad_target)
+        target = merge('target', left_pad=left_pad_target, simultaneous_padding=simultaneous_padding, max_positions=max_target_positions)
         target = target.index_select(0, sort_order)
         ntokens = sum(len(s['target']) for s in samples)
 
@@ -101,7 +101,7 @@ class LanguagePairDataset(FairseqDataset):
     def __init__(
         self, src, src_sizes, src_dict,
         tgt=None, tgt_sizes=None, tgt_dict=None,
-        left_pad_source=True, left_pad_target=False,
+        left_pad_source=True, left_pad_target=False, simultaneous_padding=False,
         max_source_positions=1024, max_target_positions=1024,
         shuffle=True, input_feeding=True, remove_eos_from_source=False, append_eos_to_target=False,
     ):
@@ -117,6 +117,7 @@ class LanguagePairDataset(FairseqDataset):
         self.tgt_dict = tgt_dict
         self.left_pad_source = left_pad_source
         self.left_pad_target = left_pad_target
+        self.simultaneous_padding = simultaneous_padding
         self.max_source_positions = max_source_positions
         self.max_target_positions = max_target_positions
         self.shuffle = shuffle
@@ -166,6 +167,8 @@ class LanguagePairDataset(FairseqDataset):
                   - `src_tokens` (LongTensor): a padded 2D Tensor of tokens in
                     the source sentence of shape `(bsz, src_len)`. Padding will
                     appear on the left if *left_pad_source* is ``True``.
+                    *(addition) - padding will appear to the right till
+                    max_source_positions if simultaneous padding is ``True``
                   - `src_lengths` (LongTensor): 1D Tensor of the unpadded
                     lengths of each source sentence of shape `(bsz)`
                   - `prev_output_tokens` (LongTensor): a padded 2D Tensor of
@@ -178,11 +181,14 @@ class LanguagePairDataset(FairseqDataset):
                 - `target` (LongTensor): a padded 2D Tensor of tokens in the
                   target sentence of shape `(bsz, tgt_len)`. Padding will appear
                   on the left if *left_pad_target* is ``True``.
+                *(addition) - padding will appear to the right till
+                max_target_positions if simultaneous padding is ``True``
         """
         return collate(
             samples, pad_idx=self.src_dict.pad(), eos_idx=self.src_dict.eos(),
             left_pad_source=self.left_pad_source, left_pad_target=self.left_pad_target,
-            input_feeding=self.input_feeding,
+            input_feeding=self.input_feeding, simultaneous_padding=self.simultaneous_padding,
+            max_source_positions=self.max_source_positions, max_target_positions=self.max_target_positions,
         )
 
     def get_dummy_batch(self, num_tokens, max_positions, src_len=128, tgt_len=128):
