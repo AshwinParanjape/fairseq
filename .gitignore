@@ -108,3 +108,7 @@ ENV/
 
 # Generated files
 fairseq/temporal_convolution_tbc
+
+# other files
+sd.sh
+experiments/
