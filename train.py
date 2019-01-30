@@ -22,7 +22,7 @@ from fairseq.data import iterators
 from fairseq.trainer import Trainer
 from fairseq.meters import AverageMeter, StopwatchMeter
 from fairseq.utils import import_user_module
-from meticulous import Experiment
+from meticulous.experiments import Experiment
 
 
 def main(args):
