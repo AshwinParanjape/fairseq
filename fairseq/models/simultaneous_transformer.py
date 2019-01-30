@@ -454,10 +454,10 @@ class TransformerEncoderLayer(nn.Module):
             self.embed_dim, args.encoder_attention_heads,
             dropout=args.attention_dropout,
         )
-        self.self_neg_attn = MultiheadAttention(
-            self.embed_dim, args.encoder_attention_heads,
-            dropout=args.attention_dropout,
-        )
+        #self.self_neg_attn = MultiheadAttention(
+            #self.embed_dim, args.encoder_attention_heads,
+            #dropout=args.attention_dropout,
+        #)
         self.dropout = args.dropout
         self.relu_dropout = args.relu_dropout
         self.normalize_before = args.encoder_normalize_before
